@@ -9,14 +9,14 @@ functions = [
     "ln"
 ]
 
-operators = ["+", "-", "*", "/"]
+bin_operators = ["+", "-", "*", "/", "^"]
 
 
 # Генерирует строку, которая содержит "случайное" математическое выражение, зависящее от t.
 # Чтобы увеличить веселость выражения на выходе - нужно поднять depth
 # Можно обмазаться скобками при желании
 # Пока возникают перлы в виде ln(t - t) итд,
-# можно попытаться от них избавиться или проверть выражение на валидность в другом месте
+# можно попытаться от них избавиться или проверять выражение на валидность в другом месте
 # можно добавить чиселок, но суть не в чиселках
 def gen_ft(depth):
     # Выбираем:
@@ -26,20 +26,20 @@ def gen_ft(depth):
     #   Ничего не делать
 
     # Теоретически это даст возможность получить любые комбинации выражений с глубиной вложенности не больше заданной
-    if depth == 0:
+    if depth < 0:
         return "t"
 
     dive = random.randint(0, 1)
-    mul = random.randint(0, 1)
+    operator = random.randint(0, 1)
     func = random.choice(functions)
 
-    if dive and not mul:
+    if dive and not operator:
         return "{}({})".format(func, gen_ft(depth - 1))
-    if not dive and mul:
-        return ("{}(t) " + random.choice(operators) + " {}").format(func, gen_ft(depth - 1))
-    if dive and mul:
-        return ("{}({} " + random.choice(operators) + " {})").format(func, gen_ft(depth - 1), gen_ft(depth - 1))
-    if not mul and not dive:
+    if not dive and operator:
+        return ("{}(t) " + random.choice(bin_operators) + " {}").format(func, gen_ft(depth - 1))
+    if dive and operator:
+        return ("{}({} " + random.choice(bin_operators) + " {})").format(func, gen_ft(depth - 1), gen_ft(depth - 1))
+    if not operator and not dive:
         return "t"
 
 
@@ -58,7 +58,7 @@ def sign(number):
 # Генерирует строку, которая содержит диффур вида a1y' + a0y = f(t),
 # при желании можно переделать под вид y' + a*y = b*f(t)
 # Скобок больше чем нужно, но не меньше, например
-def gen_equation(a1_range, a0_range, precision, ft_depth):
+def gen_equation(a1_range, a0_range, precision, ft_depth, is_homogenous):
     a1 = cut_exponent(random.uniform(a1_range[0], a1_range[1]), precision)
     a0 = cut_exponent(random.uniform(a0_range[0], a0_range[1]), precision)
 
@@ -68,6 +68,9 @@ def gen_equation(a1_range, a0_range, precision, ft_depth):
     if a0.is_integer():
         a0 = int(a0)
 
-    ft = gen_ft(ft_depth)
+    if is_homogenous:
+        ft = "0"
+    else:
+        ft = gen_ft(ft_depth)
     # Знак должен идти через пробел от числа, плюс в начале строки опускается
     return "{}{}y' {}{}y = {}".format(sign(a1).replace("+ ", ""), abs(a1), sign(a0), abs(a0), ft)
