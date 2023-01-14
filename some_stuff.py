@@ -11,7 +11,7 @@ def true_with_chance(chance):
 
 # Вернет число с заданной точностью.
 def set_precision(number, precision):
-    return float("%.{}f".format(precision) % number)
+    return float(f"%.{precision}f" % number)
 
 
 def evaluate(expr, t):

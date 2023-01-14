@@ -47,11 +47,11 @@ def gen_ft(depth):
 
     # Возможно это все достаточно неприлично.
     if dive and not operator:
-        return "{}({})".format(choice_function(), gen_ft(depth - 1))  # Тут точно не нужны внешние скобки
+        return f"{choice_function()}({gen_ft(depth - 1)})"  # Тут точно не нужны внешние скобки
     if not dive and operator:
-        return ("({}(t) " + choice_operator() + " {})").format(choice_function(), gen_ft(depth - 1))
+        return f"({choice_function()}(t) {choice_operator()} {gen_ft(depth - 1)})"
     if dive and operator:
-        return ("({}({}) " + choice_operator() + " {})").format(choice_function(), gen_ft(depth - 1), gen_ft(depth - 1))
+        return f"({choice_function()}({gen_ft(depth - 1)}) {choice_operator()}  {gen_ft(depth - 1)})"
     if not operator and not dive:
         return "t"  # Тут точно не нужны внешние скобки
 
@@ -83,16 +83,7 @@ def sign(number):
 # Генерирует строку, которая содержит диффур вида a1y' + a0y = f(t),
 # при желании можно переделать под вид y' + a*y = b*f(t)
 # Со скобками вроде все впорядке, но надо бы затестить на всякий пожарный
-def gen_equation(a1_range, a0_range, precision, ft_depth, is_homogenous):
-    a1 = set_precision(random.uniform(a1_range[0], a1_range[1]), precision)
-    a0 = set_precision(random.uniform(a0_range[0], a0_range[1]), precision)
-
-    # Чтобы не было лишних нулей
-    if a1.is_integer():
-        a1 = int(a1)
-    if a0.is_integer():
-        a0 = int(a0)
-
+def gen_equation(a1_range, a0_range, precision, ft_depth, is_homogenous, is_separable):
     if is_homogenous:
         ft = "0"
     else:
@@ -100,5 +91,15 @@ def gen_equation(a1_range, a0_range, precision, ft_depth, is_homogenous):
         while ft == "t":  # not validate_function(ft)
             ft = bring_similar(gen_ft(ft_depth))
 
+    a1 = set_precision(random.uniform(a1_range[0], a1_range[1]), precision)
+    if a1.is_integer():
+        a1 = int(a1)  # Чтобы не было лишних нулей
+
+    if is_separable:
+        return f"{sign(a1).replace('+ ', '')}{abs(a1)}y' = {ft}"
+
+    a0 = set_precision(random.uniform(a0_range[0], a0_range[1]), precision)
+    if a0.is_integer():
+        a0 = int(a0)
     # Знак должен идти через пробел от числа, плюс в начале строки опускается
-    return "{}{}y' {}{}y = {}".format(sign(a1).replace("+ ", ""), abs(a1), sign(a0), abs(a0), ft)
+    return f"{sign(a1).replace('+ ', '')}{abs(a1)}y' {sign(a0)}{abs(a0)}y = {ft}"
