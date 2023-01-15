@@ -1,7 +1,7 @@
 # То что может понадобиться в разных местах
 
 import numpy
-import numexpr
+import random
 
 
 # Возвращает true с переданной вероятностью [0:1].
@@ -14,8 +14,11 @@ def set_precision(number, precision):
     return float(f"%.{precision}f" % number)
 
 
-
-def make_second(n):
-    if n >= 0:
-        return "+ " + str(n)
-    return "- " + str(abs(n))
+# Случайное число из диапазона [a,b] но не 0
+def rnd_non_zero(n_range, precision):
+    n = 0
+    while n == 0:
+        n = set_precision(random.uniform(n_range[0], n_range[1]), precision)
+    if n.is_integer():
+        n = int(n)  # Чтобы не было лишних нулей
+    return n

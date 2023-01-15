@@ -1,6 +1,6 @@
-import random
-import numpy as np
 from some_stuff import *
+import numpy as np
+import equation as eq
 
 
 # Возвращает случайное название тригонометрической функции (как насчет гаверсинуса?).
@@ -20,7 +20,7 @@ def rnd_func_name():
 
 # Возвращает случайный бинарный оператор.
 def rnd_op_sym():
-    return numpy.random.choice(["+", "-", "*", "/", "**"])
+    return np.random.choice(["+", "-", "*", "/", "**"])
 
 
 # Генерирует строку, которая содержит "случайное" математическое выражение, зависящее от t.
@@ -63,66 +63,8 @@ def simplify(ft):
         replace("(t + t)", "(2 * t)")
 
 
-# Случайное число из диапазона [a,b] но не 0
-def rnd_non_zero(n_range, precision):
-    n = 0
-    while n == 0:
-        n = set_precision(random.uniform(n_range[0], n_range[1]), precision)
-    if n.is_integer():
-        n = int(n)  # Чтобы не было лишних нулей
-    return n
-
-
-# Генерирует строку, которая содержит диффур вида a1y' + a0y = f(t)
-def gen_a1a0_equation(a1_range, a0_range, precision, ft_depth, is_homogenous, is_separable):
-    if is_homogenous:
-        ft = "0"
-    else:
-        ft = "t"
-        while ft == "t":
-            ft = simplify(gen_ft(ft_depth))
-
-    a1 = rnd_non_zero(a1_range, precision)  # Нужно выбрать a1 из диапазона, но не 0 (иначе диффур не получится)
-    if is_separable:
-        return f"{a1}y' = {ft}"
-
-    a0 = rnd_non_zero(a0_range, precision)
-    return f"{a1}y' {make_second(a0)}y = {ft}"
-
-
-# Преобразовать линейное уравнение первого порядка в формате:
-# [a1y' sign(a0) abs(a0)y = f(t) ->
-# y' = ay + bf(t)
-def make_ab_equation(a1a0_equation, precision):
-    if a1a0_equation.find("y ") == -1:
-        separable_equation = True
-        a0 = 0
-    else:
-        separable_equation = False
-        a0 = float((a1a0_equation[a1a0_equation.find("y'") + 3:a1a0_equation.find("y ")]).replace(' ', ''))
-
-    a1 = float((a1a0_equation[:a1a0_equation.find("y'")]))
-    ft = a1a0_equation[a1a0_equation.find("=") + 2:]
-    if ft == "0":
-        homogenous_equation = True
-    else:
-        homogenous_equation = False
-
-    b = set_precision(1 / a1, precision)
-    ret = "y' = "
-    if not separable_equation:
-        a = set_precision(-a0 / a1, precision)
-        ret += f"{a}y"
-        if not homogenous_equation:
-            ret += f" {make_second(b)}({ft})"
-    else:
-        if homogenous_equation:
-            ret += "0"
-        else:
-            ret += f"{b}({ft})"
-    return ret
-
-
-def gen_ab_equation(a1_range, a0_range, precision, ft_depth, is_homogenous, is_separable):
-    return make_ab_equation(gen_a1a0_equation(a1_range, a0_range, precision, ft_depth, is_homogenous, is_separable),
-                            precision)
+def gen(a_range, b_range, precision, ft_depth, homogenous, separable):
+    a = 0 if separable else rnd_non_zero(a_range, precision)
+    b = 0 if homogenous else rnd_non_zero(b_range, precision)
+    ft = "0" if homogenous else simplify(gen_ft(ft_depth))
+    return eq.Equation(a, b, ft)
