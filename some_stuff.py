@@ -14,5 +14,8 @@ def set_precision(number, precision):
     return float(f"%.{precision}f" % number)
 
 
-def evaluate(expr, t):
-    return numexpr.evaluate(expr)
+
+def make_second(n):
+    if n >= 0:
+        return "+ " + str(n)
+    return "- " + str(abs(n))
