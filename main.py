@@ -1,13 +1,11 @@
 import equation_generator as eg
 import equation_solver as es
-
+import tests_generator as tg
+import equation as e
 from some_stuff import *
+
 import numpy as np
 from matplotlib import pyplot as plt
-import math
-
-
-
 
 
 if __name__ == '__main__':
@@ -26,11 +24,9 @@ if __name__ == '__main__':
     y0 = 0
 
     with open("tests.txt", 'w') as ost:
-        for i in range(0, 10):
+        for i in range(0, 100):
             equation = eg.gen(a_range, b_range, precision, ft_max_depth,
                               true_with_chance(chance_homogenous),
                               true_with_chance(chance_separable))
             integrated = es.integrate_eq(equation, t_vec, y0)
             ost.write(f"{equation}\n")
-    # plt.plot(range(t0, calculated.size), calculated)
-    # plt.show()
