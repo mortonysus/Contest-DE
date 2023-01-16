@@ -5,12 +5,9 @@ import sympy as smp
 class Equation:
     homogenous, separable = False, False
 
-    # a -
-    # b -
-    # ft -
-    def __init__(self, a, b, ft, solve):
+    def __init__(self, a, b, ft, y):
         self.ft = ft
-        self.solve = solve
+        self.y = y
         self.a, self.b = a, b
 
     def __str__(self):

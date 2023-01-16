@@ -49,4 +49,4 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-tests.txt
+tests/*
