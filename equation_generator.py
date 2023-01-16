@@ -1,39 +1,38 @@
 from some_stuff import *
 import numpy as np
 import equation as eq
+import sympy as smp
 
 
-# Возвращает случайное название тригонометрической функции (как насчет гаверсинуса?).
-def rnd_trig_func_name():
-    trig_func = np.random.choice(["sin", "cos", "tan"])
-    if true_with_chance(0.5):
-        trig_func += "h"
-    if true_with_chance(0.5):
-        trig_func = "arc" + trig_func
-    return trig_func
+# Возвращает результат применения случайного бинарного оператора.
+def rnd_op(a, b):
+    return np.random.choice([a + b, a - b, a * b, a / b, a ** b])
 
 
-# Возвращает случайное название алгебраической функции.
-def rnd_func_name():
-    return np.random.choice([rnd_trig_func_name(), "sqrt", "exp", "log"])
+# Возвращает случайную тригонометрическую функцию (как насчет гаверсинуса?).
+def rnd_trig_func():
+    return np.random.choice([smp.sin, smp.asin, smp.sinh, smp.asinh,
+                             smp.cos, smp.acos, smp.cosh, smp.acosh,
+                             smp.tan, smp.atan, smp.tanh, smp.atanh,
+                             smp.cot, smp.acot, smp.coth, smp.acoth,
+                             smp.sec, smp.asec, smp.sech, smp.asech,
+                             smp.csc, smp.acsc, smp.csch, smp.acsch,
+                             ])
 
 
-# Возвращает случайный бинарный оператор.
-def rnd_op_sym():
-    return np.random.choice(["+", "-", "*", "/", "**"])
+# Возвращает случайную алгебраическую функцию.
+def rnd_func():
+    return np.random.choice([rnd_trig_func(), smp.sqrt, smp.exp, smp.log, smp.cbrt])
 
 
-# Генерирует строку, которая содержит "случайное" математическое выражение, зависящее от t.
+# Генерирует выражение зависящее от t.
 # depth - максимальная глубина рекурсии(размер выражения на выходе.
-# Пока возникают перлы в виде ln(t - t) итд,
 # TODO:
-# 1) Есть проблема с нулями в неправильных местах (t-t).
-# 2) Выражение должно быть вычислимо для диапазона (который надо передавать).
-# 3) Добавить числовые коэффициенты.
-def gen_ft(depth):
+# *) Есть исчезающе-малый шанс на генерацию чего то невалидного, надо проверять валидность для точек.
+def rnd_ft(depth):
+    t = smp.Symbol('t')
     if depth <= 0:
-        return "t"
-
+        return t
     # Выбираем:
     #   Добавить слагаемое / множитель
     #   Увеличить вложенность
@@ -45,26 +44,33 @@ def gen_ft(depth):
 
     # Возможно это все достаточно неприлично.
     if dive and not operator:
-        return f"{rnd_func_name()}({gen_ft(depth - 1)})"  # Тут точно не нужны внешние скобки
+        return (rnd_func())(rnd_ft(depth - 1))
     if not dive and operator:
-        return f"({rnd_func_name()}(t) {rnd_op_sym()} {gen_ft(depth - 1)})"
+        return rnd_op((rnd_func())(t), rnd_ft(depth - 1))
     if dive and operator:
-        return f"({rnd_func_name()}({gen_ft(depth - 1)}) {rnd_op_sym()}  {gen_ft(depth - 1)})"
+        return rnd_op((rnd_func())(rnd_ft(depth - 1)), rnd_ft(depth - 1))
     if not operator and not dive:
-        return "t"  # Тут точно не нужны внешние скобки
+        return rnd_func()(t)
 
 
-# Упростить артефакты генерации f(t) (Хотя бы чуть-чуть).
-def simplify(ft):
-    return ft. \
-        replace("(t - t)", "(0)"). \
-        replace("(t / t)", "(1)"). \
-        replace("(t * t)", "(t ** 2)"). \
-        replace("(t + t)", "(2 * t)")
+def gen(a2, b2, ft_depth, homogenous, separable):
+    # f(t) = a1*y' +b1*y
+    # y' = (-b1/a1)*y + (1/a1)*f(t)
+    # y' = a2*y + b2*f(t)
 
+    a1 = smp.Rational(1, b2).limit_denominator(100)
+    b1 = smp.Rational(-a2, b2).limit_denominator(100)
 
-def gen(a_range, b_range, precision, ft_depth, homogenous, separable):
-    a = 0 if separable else rnd_non_zero(a_range, precision)
-    b = 0 if homogenous else rnd_non_zero(b_range, precision)
-    ft = "0" if homogenous else simplify(gen_ft(ft_depth))
-    return eq.Equation(a, b, ft)
+    y = smp.simplify(rnd_ft(ft_depth))
+    dy = smp.simplify(smp.diff(y))
+    ft = smp.simplify(a1 * dy + b1 * y)
+    print(a1,b1)
+    return eq.Equation(a2, b2, ft, y)
+
+# ft = sym.simplify(eg.gen_ft_sym(2))
+#     print(ft)
+#
+#     print(ft.subs('t', 2).evalf(2))
+#     dftdt = sym.simplify(sym.diff(ft, 't'))
+#     print(dftdt)
+#     print(dftdt.subs('t', 2).evalf(2))

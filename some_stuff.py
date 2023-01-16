@@ -18,7 +18,7 @@ def set_precision(number, precision):
 def rnd_non_zero(n_range, precision):
     n = 0
     while n == 0:
-        n = set_precision(random.uniform(n_range[0], n_range[1]), precision)
+        n = set_precision(random.randint(n_range[0], n_range[1]), precision)
     if n.is_integer():
         n = int(n)  # Чтобы не было лишних нулей
     return n
