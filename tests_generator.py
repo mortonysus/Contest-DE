@@ -1,8 +1,8 @@
-import numpy as np
 import os
-from some_stuff import *
+import numpy as np
 import sympy as smp
 import equation_generator as eg
+from some_stuff import *
 
 if __name__ == '__main__':
     tests_path = "tests"
@@ -33,7 +33,9 @@ if __name__ == '__main__':
             equation = eg.gen(a, b, test_config["depth"], False, False)
             with open(os.path.join(tests_path, f"test{test_number}.test"), 'w') as ost:
                 ost.write(str(equation.ft) + '\n')
-                for t in np.linspace(test_config["t0"], test_config["tn"], test_config["points"]):
+                t_vec = np.linspace(test_config["t0"], test_config["tn"], test_config["points"])
+                ost.write(str(t_vec.size) + '\n')
+                for t in t_vec:
                     ost.write(f"{t} {equation.y.subs('t', t).evalf()}\n")
             with open(os.path.join(tests_answers_path, f"test{test_number}.answer"), 'w') as ost:
                 ost.write(f"{equation.a} {equation.b}\n")

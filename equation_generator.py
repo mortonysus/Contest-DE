@@ -64,5 +64,4 @@ def gen(a2, b2, ft_depth, homogenous, separable):
     y = smp.simplify(rnd_ft(ft_depth))
     dy = smp.simplify(smp.diff(y))
     ft = smp.simplify(a1 * dy + b1 * y)
-    print(a1, b1)
     return eq.Equation(a2, b2, ft, y)
