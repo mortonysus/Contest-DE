@@ -4,7 +4,31 @@ import sympy as smp
 import equation_generator as eg
 from some_stuff import *
 
+
+def make_simple_test():
+    config = {
+        "test_name": "simple_test",
+        "t0": 0,
+        "tn": 10,
+        "points": 100,
+    }
+    t = smp.Symbol('t')
+    equation = eg.make_from_y(2, 3, t ** 2)
+    with open(f'{config["test_name"]}.test', 'w') as ost:
+        ost.write(str(equation.ft) + '\n')
+        t_vec = np.linspace(config["t0"], config["tn"], config["points"])
+        ost.write(str(t_vec.size) + '\n')
+        for t in t_vec:
+            ost.write(f"{t} {equation.y.subs('t', t)}\n")
+    with open(f'{config["test_name"]}.answer', 'w') as ost:
+        ost.write(f"{equation.a} {equation.b}\n")
+        ost.write(f"{equation}\n")
+        ost.write(f"y = {equation.y}\n")
+        ost.write(f"ft = {equation.ft}\n")
+
+
 if __name__ == '__main__':
+    make_simple_test()
     tests_path = "tests"
     tests_answers_path = os.path.join(tests_path, "answers")
     if not os.path.exists(tests_path):
@@ -14,7 +38,7 @@ if __name__ == '__main__':
 
     test_configs = [
         {
-            "count": 10,
+            "count": 0,
             "depth": 2,
             "t0": 0,
             "tn": 10,

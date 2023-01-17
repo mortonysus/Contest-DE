@@ -53,15 +53,17 @@ def rnd_ft(depth):
         return rnd_func()(t)
 
 
-def gen(a2, b2, ft_depth, homogenous, separable):
+def make_from_y(a2, b2, y):
     # f(t) = a1*y' +b1*y
     # y' = (-b1/a1)*y + (1/a1)*f(t)
     # y' = a2*y + b2*f(t)
-
     a1 = smp.Rational(1, b2).limit_denominator(100)
     b1 = smp.Rational(-a2, b2).limit_denominator(100)
-
-    y = smp.simplify(rnd_ft(ft_depth))
     dy = smp.simplify(smp.diff(y))
     ft = smp.simplify(a1 * dy + b1 * y)
     return eq.Equation(a2, b2, ft, y)
+
+
+def gen(a2, b2, ft_depth, homogenous, separable):
+    y = smp.simplify(rnd_ft(ft_depth))
+    return make_from_y(a2, b2, y)
