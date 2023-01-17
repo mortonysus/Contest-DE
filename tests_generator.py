@@ -13,7 +13,7 @@ def make_simple_test():
         "points": 100,
     }
     t = smp.Symbol('t')
-    equation = eg.make_from_y(2, 3, t ** 2)
+    equation = eg.make_from_y(-2, 3, smp.sin(t))
     with open(f'{config["test_name"]}.test', 'w') as ost:
         ost.write(str(equation.ft) + '\n')
         t_vec = np.linspace(config["t0"], config["tn"], config["points"])

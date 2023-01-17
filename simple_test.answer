@@ -1,4 +1,4 @@
-2 3
-y' = -2*t*(t - 1) + 2*y
-y = t**2
-ft = 2*t*(1 - t)/3
+-2 3
+y' = -2*y + 2*sin(t) + cos(t)
+y = sin(t)
+ft = 2*sin(t)/3 + cos(t)/3

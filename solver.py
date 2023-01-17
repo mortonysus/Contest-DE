@@ -62,8 +62,8 @@ def paint_err():
 
     true_a = 2
     true_b = 3
-    delta_a = 5
-    delta_b = 5
+    delta_a = 0.1
+    delta_b = 0.1
     points = 5
     a_space = np.linspace(true_a - delta_a, true_a + delta_a, points)
     np.delete(a_space, 0)
@@ -75,7 +75,6 @@ def paint_err():
     ax.set_xlabel('a')
     ax.set_ylabel('b')
     ax.set_zlabel('error')
-
     plt.show()
 
 
@@ -85,3 +84,20 @@ if __name__ == '__main__':
         ft = smp.parsing.sympy_parser.parse_expr(ist.readline())
         n = int(ist.readline())
         y_disc = [tuple([float(i) for i in ist.readline().split()]) for j in range(n)]
+        # paint_err()
+        # Начальное значение a и b
+        a, b = -10, 25
+        # Начальное значение веса
+        learning_rate = 0.01
+        # Количество итераций
+        num_iterations = 1000
+
+        for i in range(num_iterations):
+            # Вычисляем градиент
+            grad_a, grad_b = grad(a, b)
+            print(grad_a, grad_b)
+            # Обновляем веса
+            a -= learning_rate * grad_a
+            b -= learning_rate * grad_b
+            # Выводим текущее значение функции ошибки
+            print("Iteration: {}, Error: {}, a:{}, b:{}".format(i, err(a, b), a, b))
