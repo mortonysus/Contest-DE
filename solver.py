@@ -1,14 +1,17 @@
 import sympy as smp
+import matplotlib.pyplot as plt
+import numpy as np
 
 
-def err(y_disk, y_particular):
+def calc_err(y_disk, y_particular):
+    # print(y_particular)
     error = 0
     for point in y_disk:
         error += (point[1] - y_particular.subs('t', point[0])) ** 2
     return 0.5 * error
 
 
-def grad_err(y_disk, y_particular, a, b):
+def calc_grad(y_disk, y_particular, a, b):
     grad_a, grad_b = 0, 0
     diff_a = smp.diff(y_particular, 'a').subs({'a': a, 'b': b})
     diff_b = smp.diff(y_particular, 'b').subs({'a': a, 'b': b})
@@ -20,24 +23,65 @@ def grad_err(y_disk, y_particular, a, b):
     return tuple([grad_a, grad_b])
 
 
+# print(y_disc[1][0], y_disc[1][1])  # Первая точка
+# print(y_disc[1][0], y_particular.subs(params))  # Первая точка частного решения
+def err(a_, b_):
+    a = smp.Symbol('a')
+    b = smp.Symbol('b')
+    t = smp.Symbol('t')
+    c = smp.Symbol('c')
+    y_general = b * smp.exp(a * t) * (smp.integrate(ft / (smp.exp((a * t))), t) + c)  # Общее решение
+
+    params = {'t': y_disc[1][0],
+              'a': a_,
+              'b': b_}
+    c = smp.solve(y_general.subs(params) - y_disc[1][1], c)[0]  # Задача Коши
+    y_particular = y_general.subs('c', c)  # Частное решение
+    error = calc_err(y_disc, y_particular.subs({'a': params['a'], 'b': params['b']}))
+    return error
+
+
+def grad(a_, b_):
+    a = smp.Symbol('a')
+    b = smp.Symbol('b')
+    t = smp.Symbol('t')
+    c = smp.Symbol('c')
+    y_general = b * smp.exp(a * t) * (smp.integrate(ft / (smp.exp((a * t))), t) + c)  # Общее решение
+
+    params = {'t': y_disc[1][0],
+              'a': a_,
+              'b': b_}
+    c = smp.solve(y_general.subs(params) - y_disc[1][1], c)[0]  # Задача Коши
+    y_particular = y_general.subs('c', c)  # Частное решение
+    return calc_grad(y_disc, y_particular, params['a'], params['b'])
+
+
+def paint_err():
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1, projection='3d')
+
+    true_a = 2
+    true_b = 3
+    delta_a = 5
+    delta_b = 5
+    points = 5
+    a_space = np.linspace(true_a - delta_a, true_a + delta_a, points)
+    np.delete(a_space, 0)
+    b_space = np.linspace(true_b - delta_b, true_b + delta_b, points)
+    np.delete(b_space, 0)
+    x, y = np.meshgrid(a_space, b_space)
+    z = np.array([[err(a, b) for a in a_space] for b in b_space])
+    ax.plot_surface(x, y, z)
+    ax.set_xlabel('a')
+    ax.set_ylabel('b')
+    ax.set_zlabel('error')
+
+    plt.show()
+
+
 if __name__ == '__main__':
     test_file_name = "simple_test.test"
     with open(test_file_name, 'r') as ist:
         ft = smp.parsing.sympy_parser.parse_expr(ist.readline())
         n = int(ist.readline())
-        a = smp.Symbol('a')
-        b = smp.Symbol('b')
-        t = smp.Symbol('t')
-        c = smp.Symbol('c')
         y_disc = [tuple([float(i) for i in ist.readline().split()]) for j in range(n)]
-        y_general = b * smp.exp(a * t) * (smp.integrate(ft / (smp.exp((a * t))), t) + c)  # Общее решение
-
-        params = {'t': y_disc[1][0],
-                  'a': 2.000000001,
-                  'b': 3}
-        c = smp.solve(y_general.subs(params) - y_disc[1][1], c)[0]  # Задача Коши
-        y_particular = y_general.subs('c', c)  # Частное решение
-        print(y_disc[1][0], y_disc[1][1])  # Первая точка
-        print(y_disc[1][0], y_particular.subs(params))  # Первая точка частного решения
-        print(err(y_disc, y_particular.subs({'a': params['a'], 'b': params['b']})))  # Ошибка частного решения
-        print(grad_err(y_disc, y_particular, params['a'], params['b']))  # Градиент функции ошибки
