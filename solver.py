@@ -4,70 +4,62 @@ import numpy as np
 import math
 
 
-def calc_err(y_disk, y_particular):
+def error(y_disk, y_particular):
     return 0.5 * sum([(point[1] - y_particular.subs('t', point[0])) ** 2 for point in y_disk])
 
 
-def calc_grad(y_disk, y_particular, a, b):
+def grad(y_disk, y_particular, diff_a, diff_b):
     grad_a, grad_b = 0, 0
-    diff_a = smp.diff(y_particular, 'a').subs({'a': a, 'b': b})
-    diff_b = smp.diff(y_particular, 'b').subs({'a': a, 'b': b})
-    y_particular = y_particular.subs({'a': a, 'b': b})
     for point in y_disk:
         grad_a -= (point[1] - y_particular.subs('t', point[0])) * diff_a.subs('t', point[0])
         grad_b -= (point[1] - y_particular.subs('t', point[0])) * diff_b.subs('t', point[0])
     return grad_a, grad_b
 
 
-def error(a_, b_, y_gen):
-    a, b, t, c = smp.Symbol('a'), smp.Symbol('b'), smp.Symbol('t'), smp.Symbol('c')
+# def paint_err(y_gen):
+#     fig = plt.figure()
+#     ax = fig.add_subplot(1, 1, 1, projection='3d')
+#
+#     true_a = -2
+#     true_b = 3
+#     delta_a = 10
+#     delta_b = 10
+#     points = 5
+#     a_space = np.linspace(true_a - delta_a, true_a + delta_a, points)
+#     np.delete(a_space, 0)
+#     b_space = np.linspace(true_b - delta_b, true_b + delta_b, points)
+#     np.delete(b_space, 0)
+#     x, y = np.meshgrid(a_space, b_space)
+#     z = np.array([[error(a, b, y_gen) for a in a_space] for b in b_space])
+#     ax.plot_surface(x, y, z)
+#     ax.set_xlabel('a')
+#     ax.set_ylabel('b')
+#     ax.set_zlabel('error')
+#     plt.show()
 
-    params = {'t': y_disc[1][0],
-              'a': a_,
-              'b': b_}
-    c = smp.solve(y_gen.subs(params) - y_disc[1][1], c)[0]  # Задача Коши
-    return calc_err(y_disc, y_gen.subs({'a': params['a'], 'b': params['b'], 'c': c}))
 
-
-def grad(a_, b_, y_gen):
-    a, b, t, c = smp.Symbol('a'), smp.Symbol('b'), smp.Symbol('t'), smp.Symbol('c')
-
-    params = {'t': y_disc[1][0],
-              'a': a_,
-              'b': b_}
-    c = smp.solve(y_gen.subs(params) - y_disc[1][1], c)[0]  # Задача Коши
-    y_particular = y_gen.subs('c', c)  # Частное решение
-    return calc_grad(y_disc, y_particular, params['a'], params['b'])
-
-
-def paint_err(y_gen):
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1, projection='3d')
-
-    true_a = -2
-    true_b = 3
-    delta_a = 10
-    delta_b = 10
-    points = 5
-    a_space = np.linspace(true_a - delta_a, true_a + delta_a, points)
-    np.delete(a_space, 0)
-    b_space = np.linspace(true_b - delta_b, true_b + delta_b, points)
-    np.delete(b_space, 0)
-    x, y = np.meshgrid(a_space, b_space)
-    z = np.array([[error(a, b, y_gen) for a in a_space] for b in b_space])
-    ax.plot_surface(x, y, z)
-    ax.set_xlabel('a')
-    ax.set_ylabel('b')
-    ax.set_zlabel('error')
-    plt.show()
+def coshi(a, b, y_disc, y_gen):
+    c = smp.Symbol('c')
+    ab = {'a': a, 'b': b}
+    tab = ab | {'t': y_disc[1][0]}
+    return smp.solve(y_gen.subs(tab) - y_disc[1][1], c)[0]  # Задача Коши
 
 
 if __name__ == '__main__':
     test_file_name = "simple_test.test"
     with open(test_file_name, 'r') as ist:
+        a, b, t, c = smp.Symbol('a'), smp.Symbol('b'), smp.Symbol('t'), smp.Symbol('c')
+
         ft = smp.parsing.sympy_parser.parse_expr(ist.readline())
         points_size = int(ist.readline())
+
+        # Истинное и предсказанное решение (неопределенное)
         y_disc = [tuple([float(value) for value in ist.readline().split()]) for point in range(points_size)]
+        y_gen = b * smp.exp(a * t) * (smp.integrate(ft / (smp.exp((a * t))), t) + c)
+
+        # Частные производные в общем виде
+        diff_a_gen = smp.diff(y_gen, 'a')
+        diff_b_gen = smp.diff(y_gen, 'b')
 
         # Инициализируем параметры метода Adam
         beta1 = 0.9
@@ -75,7 +67,7 @@ if __name__ == '__main__':
         epsilon = 1e-8
 
         # Начальное значение a и b
-        a_, b_ = -10, 25
+        a_, b_ = -2.1, 3
         # Начальное значение веса
         learning_rate = 0.1
 
@@ -86,17 +78,19 @@ if __name__ == '__main__':
         iteration = 0
         while True:
             iteration += 1
-            a, b, t, c = smp.Symbol('a'), smp.Symbol('b'), smp.Symbol('t'), smp.Symbol('c')
-            y_gen = b * smp.exp(a * t) * (smp.integrate(ft / (smp.exp((a * t))), t) + c)  # Общее решение
 
+            abc = {'a': a_, 'b': b_, 'c': coshi(a_, b_, y_disc, y_gen)}
             # Выводим текущее значение функции ошибки
-            err = error(a_, b_, y_gen)
+            err = error(y_disc, y_gen.subs(abc))
             print(f"Iteration: {iteration}, Error: {err}, a:{a_}, b:{b_}")
-            if err < 0.001:
+            if err < epsilon:
                 break
 
             # Вычисляем градиент
-            grad_a, grad_b = grad(a_, b_, y_gen)
+            grad_a, grad_b = grad(y_disc,
+                                  y_gen.subs(abc),
+                                  diff_a_gen.subs(abc),
+                                  diff_b_gen.subs(abc))
 
             # Обновляем значения для m и v
             m_a = beta1 * m_a + (1 - beta1) * grad_a
