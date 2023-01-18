@@ -4,45 +4,14 @@ import numpy as np
 import math
 
 
-def error(y_disk, y_particular):
-    return 0.5 * sum([(point[1] - y_particular.subs('t', point[0])) ** 2 for point in y_disk])
-
-
-def grad(y_disk, y_particular, diff_a, diff_b):
-    grad_a, grad_b = 0, 0
+def grad_error(y_disk, y_part, diff_a_part, diff_b_part):
+    error, grad_a, grad_b = 0, 0, 0
     for point in y_disk:
-        grad_a -= (point[1] - y_particular.subs('t', point[0])) * diff_a.subs('t', point[0])
-        grad_b -= (point[1] - y_particular.subs('t', point[0])) * diff_b.subs('t', point[0])
-    return grad_a, grad_b
-
-
-# def paint_err(y_gen):
-#     fig = plt.figure()
-#     ax = fig.add_subplot(1, 1, 1, projection='3d')
-#
-#     true_a = -2
-#     true_b = 3
-#     delta_a = 10
-#     delta_b = 10
-#     points = 5
-#     a_space = np.linspace(true_a - delta_a, true_a + delta_a, points)
-#     np.delete(a_space, 0)
-#     b_space = np.linspace(true_b - delta_b, true_b + delta_b, points)
-#     np.delete(b_space, 0)
-#     x, y = np.meshgrid(a_space, b_space)
-#     z = np.array([[error(a, b, y_gen) for a in a_space] for b in b_space])
-#     ax.plot_surface(x, y, z)
-#     ax.set_xlabel('a')
-#     ax.set_ylabel('b')
-#     ax.set_zlabel('error')
-#     plt.show()
-
-
-def coshi(a, b, y_disc, y_gen):
-    c = smp.Symbol('c')
-    ab = {'a': a, 'b': b}
-    tab = ab | {'t': y_disc[1][0]}
-    return smp.solve(y_gen.subs(tab) - y_disc[1][1], c)[0]  # Задача Коши
+        delta_y = (point[1] - y_part.subs('t', point[0]))
+        grad_a -= delta_y * diff_a_part.subs('t', point[0])
+        grad_b -= delta_y * diff_b_part.subs('t', point[0])
+        error += delta_y ** 2
+    return 0.5 * error, grad_a, grad_b
 
 
 if __name__ == '__main__':
@@ -79,18 +48,21 @@ if __name__ == '__main__':
         while True:
             iteration += 1
 
-            abc = {'a': a_, 'b': b_, 'c': coshi(a_, b_, y_disc, y_gen)}
+            # c - Задача Коши для первой точки
+            abc = {'a': a_,
+                   'b': b_,
+                   'c': smp.solve(y_gen.subs({'t': y_disc[1][0], 'a': a_, 'b': b_}) - y_disc[1][1], c)[0]}
+
+            # Вычисляем ошибку и градиент одновременно (оптимизация)
+            err, grad_a, grad_b = grad_error(y_disc,
+                                             y_gen.subs(abc),
+                                             diff_a_gen.subs(abc),
+                                             diff_b_gen.subs(abc))
+
             # Выводим текущее значение функции ошибки
-            err = error(y_disc, y_gen.subs(abc))
             print(f"Iteration: {iteration}, Error: {err}, a:{a_}, b:{b_}")
             if err < epsilon:
                 break
-
-            # Вычисляем градиент
-            grad_a, grad_b = grad(y_disc,
-                                  y_gen.subs(abc),
-                                  diff_a_gen.subs(abc),
-                                  diff_b_gen.subs(abc))
 
             # Обновляем значения для m и v
             m_a = beta1 * m_a + (1 - beta1) * grad_a
@@ -108,3 +80,24 @@ if __name__ == '__main__':
             # Обновляем веса
             a_ -= learning_rate * m_a_corr / (math.sqrt(v_a_corr) + epsilon)
             b_ -= learning_rate * m_b_corr / (math.sqrt(v_b_corr) + epsilon)
+
+# def paint_err(y_gen):
+#     fig = plt.figure()
+#     ax = fig.add_subplot(1, 1, 1, projection='3d')
+#
+#     true_a = -2
+#     true_b = 3
+#     delta_a = 10
+#     delta_b = 10
+#     points = 5
+#     a_space = np.linspace(true_a - delta_a, true_a + delta_a, points)
+#     np.delete(a_space, 0)
+#     b_space = np.linspace(true_b - delta_b, true_b + delta_b, points)
+#     np.delete(b_space, 0)
+#     x, y = np.meshgrid(a_space, b_space)
+#     z = np.array([[error(a, b, y_gen) for a in a_space] for b in b_space])
+#     ax.plot_surface(x, y, z)
+#     ax.set_xlabel('a')
+#     ax.set_ylabel('b')
+#     ax.set_zlabel('error')
+#     plt.show()
