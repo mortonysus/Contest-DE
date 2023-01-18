@@ -42,7 +42,7 @@ if __name__ == '__main__':
             "depth": 2,
             "t0": 0,
             "tn": 10,
-            "points": 100,
+            "points": 10,
             "int_ab": True,
             "a_range": (-10, 10),
             "b_range": (-20, -10),
