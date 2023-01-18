@@ -4,6 +4,11 @@ import equation as eq
 import sympy as smp
 
 
+# Возвращает true с переданной вероятностью [0:1].
+def true_with_chance(chance):
+    return numpy.random.choice([True, False], p=[chance, 1 - chance])
+
+
 # Возвращает результат применения случайного бинарного оператора.
 def rnd_op(a, b):
     return np.random.choice([a + b, a - b, a * b, a / b, a ** b])
@@ -64,6 +69,6 @@ def make_from_y(a2, b2, y):
     return eq.Equation(a2, b2, ft, y)
 
 
-def gen(a2, b2, ft_depth, homogenous, separable):
+def gen(a, b, ft_depth, homogenous, separable):
     y = smp.simplify(rnd_ft(ft_depth))
-    return make_from_y(a2, b2, y)
+    return make_from_y(a, b, y)
