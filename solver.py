@@ -25,7 +25,7 @@ def compute_deltas(point, y_part, diff_a_part, diff_b_part):
 
 
 if __name__ == '__main__':
-    test_file_name = "simple_test.test"
+    test_file_name = "tests/test0.test"
     with open(test_file_name, 'r') as ist:
         a, b, t, c = smp.Symbol('a'), smp.Symbol('b'), smp.Symbol('t'), smp.Symbol('c')
 
@@ -46,9 +46,9 @@ if __name__ == '__main__':
         epsilon = 1e-8
 
         # Начальное значение a и b
-        a_, b_ = -2.5, -4
+        a_, b_ = -2.1, 2.9
         # Начальное значение веса
-        learning_rate = 0.1
+        learning_rate = 0.01
 
         # инициализируем нулевые значения для m и v
         m_a, m_b = 0.0, 0.0
@@ -56,14 +56,13 @@ if __name__ == '__main__':
 
         iteration = 0
         error = 1
-        while error > epsilon:
+        while error > 1e-12:
             iteration += 1
 
             # c - Задача Коши для первой точки
             abc = {'a': a_,
                    'b': b_,
                    'c': smp.solve(y_gen.subs({'t': y_disc[1][0], 'a': a_, 'b': b_}) - y_disc[1][1], c)[0]}
-
             # Вычисляем ошибку и градиент одновременно (оптимизация)
             error, grad_a, grad_b = grad_error(y_disc,
                                                y_gen.subs(abc),
