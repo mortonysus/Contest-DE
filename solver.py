@@ -46,7 +46,7 @@ if __name__ == '__main__':
         epsilon = 1e-8
 
         # Начальное значение a и b
-        a_, b_ = -2.1, 3.0
+        a_, b_ = -2.5, -4
         # Начальное значение веса
         learning_rate = 0.1
 
@@ -55,7 +55,8 @@ if __name__ == '__main__':
         v_a, v_b = 0.0, 0.0
 
         iteration = 0
-        while True:
+        error = 1
+        while error > epsilon:
             iteration += 1
 
             # c - Задача Коши для первой точки
@@ -71,8 +72,6 @@ if __name__ == '__main__':
 
             # Выводим текущее значение функции ошибки
             print(f"Iteration: {iteration}, Error: {error}, a:{a_}, b:{b_}")
-            if error < epsilon:
-                break
 
             # Обновляем значения для m и v
             m_a = beta1 * m_a + (1 - beta1) * grad_a
@@ -91,23 +90,24 @@ if __name__ == '__main__':
             a_ -= learning_rate * m_a_corr / (math.sqrt(v_a_corr) + epsilon)
             b_ -= learning_rate * m_b_corr / (math.sqrt(v_b_corr) + epsilon)
 
-# def paint_err(y_gen):
-#     fig = plt.figure()
-#     ax = fig.add_subplot(1, 1, 1, projection='3d')
-#
-#     true_a = -2
-#     true_b = 3
-#     delta_a = 10
-#     delta_b = 10
-#     points = 5
-#     a_space = np.linspace(true_a - delta_a, true_a + delta_a, points)
-#     np.delete(a_space, 0)
-#     b_space = np.linspace(true_b - delta_b, true_b + delta_b, points)
-#     np.delete(b_space, 0)
-#     x, y = np.meshgrid(a_space, b_space)
-#     z = np.array([[error(a, b, y_gen) for a in a_space] for b in b_space])
-#     ax.plot_surface(x, y, z)
-#     ax.set_xlabel('a')
-#     ax.set_ylabel('b')
-#     ax.set_zlabel('error')
-#     plt.show()
+
+def paint_err(y_gen):
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1, projection='3d')
+
+    true_a = -2
+    true_b = 3
+    delta_a = 10
+    delta_b = 10
+    points = 5
+    a_space = np.linspace(true_a - delta_a, true_a + delta_a, points)
+    np.delete(a_space, 0)
+    b_space = np.linspace(true_b - delta_b, true_b + delta_b, points)
+    np.delete(b_space, 0)
+    x, y = np.meshgrid(a_space, b_space)
+    z = np.array([[error(a, b, y_gen) for a in a_space] for b in b_space])
+    ax.plot_surface(x, y, z)
+    ax.set_xlabel('a')
+    ax.set_ylabel('b')
+    ax.set_zlabel('error')
+    plt.show()
