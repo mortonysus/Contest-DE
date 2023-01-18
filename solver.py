@@ -2,16 +2,26 @@ import sympy as smp
 import matplotlib.pyplot as plt
 import numpy as np
 import math
+import concurrent.futures
 
 
 def grad_error(y_disk, y_part, diff_a_part, diff_b_part):
     error, grad_a, grad_b = 0, 0, 0
-    for point in y_disk:
-        delta_y = (point[1] - y_part.subs('t', point[0]))
-        grad_a -= delta_y * diff_a_part.subs('t', point[0])
-        grad_b -= delta_y * diff_b_part.subs('t', point[0])
-        error += delta_y ** 2
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        results = [executor.submit(compute_deltas, point, y_part, diff_a_part, diff_b_part) for point in y_disk]
+        for future in concurrent.futures.as_completed(results):
+            delta_y, delta_grad_a, delta_grad_b = future.result()
+            grad_a -= delta_grad_a
+            grad_b -= delta_grad_b
+            error += delta_y ** 2
     return 0.5 * error, grad_a, grad_b
+
+
+def compute_deltas(point, y_part, diff_a_part, diff_b_part):
+    delta_y = (point[1] - y_part.subs('t', point[0]))
+    delta_grad_a = delta_y * diff_a_part.subs('t', point[0])
+    delta_grad_b = delta_y * diff_b_part.subs('t', point[0])
+    return delta_y, delta_grad_a, delta_grad_b
 
 
 if __name__ == '__main__':
@@ -36,13 +46,13 @@ if __name__ == '__main__':
         epsilon = 1e-8
 
         # Начальное значение a и b
-        a_, b_ = -2.1, 3
+        a_, b_ = -2.1, 3.0
         # Начальное значение веса
         learning_rate = 0.1
 
         # инициализируем нулевые значения для m и v
-        m_a, m_b = 0, 0
-        v_a, v_b = 0, 0
+        m_a, m_b = 0.0, 0.0
+        v_a, v_b = 0.0, 0.0
 
         iteration = 0
         while True:
@@ -54,14 +64,14 @@ if __name__ == '__main__':
                    'c': smp.solve(y_gen.subs({'t': y_disc[1][0], 'a': a_, 'b': b_}) - y_disc[1][1], c)[0]}
 
             # Вычисляем ошибку и градиент одновременно (оптимизация)
-            err, grad_a, grad_b = grad_error(y_disc,
-                                             y_gen.subs(abc),
-                                             diff_a_gen.subs(abc),
-                                             diff_b_gen.subs(abc))
+            error, grad_a, grad_b = grad_error(y_disc,
+                                               y_gen.subs(abc),
+                                               diff_a_gen.subs(abc),
+                                               diff_b_gen.subs(abc))
 
             # Выводим текущее значение функции ошибки
-            print(f"Iteration: {iteration}, Error: {err}, a:{a_}, b:{b_}")
-            if err < epsilon:
+            print(f"Iteration: {iteration}, Error: {error}, a:{a_}, b:{b_}")
+            if error < epsilon:
                 break
 
             # Обновляем значения для m и v
