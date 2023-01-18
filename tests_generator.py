@@ -42,12 +42,14 @@ def disk(y, t_vec, max_value):
         return []
 
 
-def validate(equation, t_):
+def validate(equation, t_vec):
     a, t = smp.Symbol('a'), smp.Symbol('t')
-    y_gen = smp.integrate(equation.ft / (smp.exp((a * t))), t)
+    print(equation.ft)
+    integral = smp.integrate(equation.ft / (smp.exp((a * t))), t)
     try:
-        print(y_gen)
-        float(y_gen.subs({'a': equation.a, 't': t_}))
+        print(integral)
+        for t_ in t_vec:
+            float(integral.subs({'a': equation.a - 1, 't': t_}))
         return True
     except:
         return False
@@ -85,7 +87,7 @@ if __name__ == '__main__':
 
             equation = eg.gen(a, b, test_config["depth"], False, False)
             points = disk(equation.y, t_vec, test_config["max_value"])
-            while points == [] or not validate(equation, test_config["t0"]):
+            while points == [] or not validate(equation, t_vec):
                 print(f"bad: y = {equation.y} for interval")
                 equation = eg.gen(a, b, test_config["depth"], False, False)
                 points = disk(equation.y, t_vec, test_config["max_value"])
