@@ -22,7 +22,7 @@ def compute_deltas(point, y_part, diff_a_part, diff_b_part):
 
 
 if __name__ == '__main__':
-    test_file_name = "tests/test6.test"
+    test_file_name = "tests/example_test.test"
     with open(test_file_name, 'r') as ist:
         a, b, t, c = smp.Symbol('a'), smp.Symbol('b'), smp.Symbol('t'), smp.Symbol('c')
 
