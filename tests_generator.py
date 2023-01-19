@@ -33,7 +33,12 @@ def valid_equation(cfg):
     # Дробные коэффициенты будут.
     a = randint(*cfg["a_range"])
     b = randint(*cfg["b_range"])
-    t_vec = np.linspace(cfg["t0"], cfg["tn"], cfg["points"])
+    if cfg["distribution"] == "normal":
+        t_vec = np.random.normal(loc=(cfg["tn"]-cfg["t0"])/2, scale=(cfg["tn"]-cfg["t0"])/3, size=cfg["points"])
+    elif cfg["distribution"] == "uniform":
+        t_vec = np.linspace(cfg["t0"], cfg["tn"], cfg["points"])
+    else:
+        raise Exception(f"unknown distribution mode: {cfg['distribution']}")
     while True:
         equation = eg.gen(a, b, cfg["homogenous"], cfg["separable"])
         points = discretize(equation.y, t_vec, cfg["max_value"])
@@ -65,7 +70,7 @@ test_configs = [
         "depth": 1,
         "t0": 10,
         "tn": 20,
-        "points": 101,
+        "points": 11,
         "a_range": (-10, -1),
         "b_range": (-10, -1),
         "max_value": 10 ** 6,
@@ -73,6 +78,7 @@ test_configs = [
         "answers_path": os.path.join("tests", "answers"),
         "separable": False,
         "homogenous": False,
+        "distribution": "uniform"
     }
 ]
 
