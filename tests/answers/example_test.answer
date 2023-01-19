@@ -1,0 +1,4 @@
+-3 -4
+y' = -3*y - sin(t) + 3*cos(t)
+y = cos(t)
+ft = sin(t)/4 - 3*cos(t)/4

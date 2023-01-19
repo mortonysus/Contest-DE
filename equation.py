@@ -3,8 +3,6 @@ import sympy as smp
 
 # ODE in format: y' = a*y + b*f(t)
 class Equation:
-    homogenous, separable = False, False
-
     def __init__(self, a, b, ft, y):
         self.ft = ft
         self.y = y

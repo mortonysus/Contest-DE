@@ -1,7 +1,4 @@
 import sympy as smp
-import matplotlib.pyplot as plt
-import numpy as np
-import math
 import concurrent.futures
 
 
@@ -25,7 +22,7 @@ def compute_deltas(point, y_part, diff_a_part, diff_b_part):
 
 
 if __name__ == '__main__':
-    test_file_name = "tests/test0.test"
+    test_file_name = "tests/test6.test"
     with open(test_file_name, 'r') as ist:
         a, b, t, c = smp.Symbol('a'), smp.Symbol('b'), smp.Symbol('t'), smp.Symbol('c')
 
@@ -46,7 +43,7 @@ if __name__ == '__main__':
         epsilon = 1e-8
 
         # Начальное значение a и b
-        a_, b_ = -2.1, 2.9
+        a_, b_ = -5, -5
         # Начальное значение веса
         learning_rate = 0.1
 
@@ -86,27 +83,5 @@ if __name__ == '__main__':
             v_b_corr = v_b / (1 - beta2)
 
             # Обновляем веса
-            a_ -= learning_rate * m_a_corr / (math.sqrt(v_a_corr) + epsilon)
-            b_ -= learning_rate * m_b_corr / (math.sqrt(v_b_corr) + epsilon)
-
-
-def paint_err(y_gen):
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1, projection='3d')
-
-    true_a = -2
-    true_b = 3
-    delta_a = 10
-    delta_b = 10
-    points = 5
-    a_space = np.linspace(true_a - delta_a, true_a + delta_a, points)
-    np.delete(a_space, 0)
-    b_space = np.linspace(true_b - delta_b, true_b + delta_b, points)
-    np.delete(b_space, 0)
-    x, y = np.meshgrid(a_space, b_space)
-    z = np.array([[error(a, b, y_gen) for a in a_space] for b in b_space])
-    ax.plot_surface(x, y, z)
-    ax.set_xlabel('a')
-    ax.set_ylabel('b')
-    ax.set_zlabel('error')
-    plt.show()
+            a_ -= learning_rate * m_a_corr / (smp.sqrt(v_a_corr) + epsilon)
+            b_ -= learning_rate * m_b_corr / (smp.sqrt(v_b_corr) + epsilon)
