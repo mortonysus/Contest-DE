@@ -1,5 +1,5 @@
 import numpy as np
-import equation as eq
+import Equation as eq
 import sympy as smp
 
 
@@ -57,13 +57,6 @@ def make_separate_homogeneous(a2, b2, y):
 
 # Пока не получается нормально генерировать функцию так чтобы потом интегрировалось,
 # но мы исправим и будут более интересные функции. (Разработка в ветке main)
-def gen(a, b, homogenous, separable):
+def gen(depth, homogenous, separable):
     y = rnd_trig_func()(smp.Symbol('t'))
-    if homogenous:
-        if separable:
-            return make_separate_homogeneous(a, b, y)
-        return make_homogeneous(a, b, y)
-    elif separable:
-        return make_separate(a, b, y)
-    else:
-        return make_from_y(a, b, y)
+
