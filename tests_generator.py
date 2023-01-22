@@ -33,8 +33,8 @@ def valid_equation(cfg):
     # Дробные коэффициенты будут.
     a = randint(*cfg["a_range"])
     b = randint(*cfg["b_range"])
-    if cfg["distribution"] == "normal":
-        t_vec = np.random.normal(loc=(cfg["tn"]-cfg["t0"])/2, scale=(cfg["tn"]-cfg["t0"])/3, size=cfg["points"])
+    if cfg["distribution"] == "random":
+        t_vec = np.sort([np.random.uniform(cfg["t0"], cfg["tn"]) for point in range(cfg["points"])])
     elif cfg["distribution"] == "uniform":
         t_vec = np.linspace(cfg["t0"], cfg["tn"], cfg["points"])
     else:
@@ -78,7 +78,7 @@ test_configs = [
         "answers_path": os.path.join("tests", "answers"),
         "separable": False,
         "homogenous": False,
-        "distribution": "uniform"
+        "distribution": "random"
     }
 ]
 
