@@ -3,60 +3,46 @@ import Equation as eq
 import sympy as smp
 
 
-# Возвращает случайную тригонометрическую функцию.
-def rnd_trig_func():
-    return np.random.choice([smp.sin, smp.asin, smp.sinh, smp.asinh,
-                             smp.cos, smp.acos, smp.cosh, smp.acosh,
-                             smp.tan, smp.atan, smp.tanh, smp.atanh,
-                             smp.cot, smp.acot, smp.coth, smp.acoth,
-                             smp.sec, smp.asec, smp.sech, smp.asech,
-                             smp.csc, smp.acsc, smp.csch, smp.acsch,
-                             ])
-
-# Генерация неоднородных уравнений
-def make_from_y(a2, b2, y):
-    # f(t) = a1*y' +b1*y
-    # y' = (-b1/a1)*y + (1/a1)*f(t)
-    # y' = a2*y + b2*f(t)
-    a1 = smp.Rational(1, b2).limit_denominator(100)
-    b1 = smp.Rational(-a2, b2).limit_denominator(100)
-    dy = smp.simplify(smp.diff(y))
-    ft = smp.simplify((a1 * dy + b1 * y))
-    return eq.Equation(a2, b2, ft, y)
+# Возвращает true с переданной вероятностью [0:1].
+def true_with_chance(chance):
+    return np.random.choice([True, False], p=[chance, 1 - chance])
 
 
-# Генерация однородных уравнений, a2 != 0, f(t) == 0
-def make_homogeneous(a2, b2, y):
-    t = smp.Symbol('t')
-    # y' = -a2y
-    # y = c * e^(a1x)
-    # ft = 0
-    ft = smp.simplify(t - t)
-    y = smp.exp(a2 * t)
-    return eq.Equation(a2, b2, ft, y)
+# Возвращает результат применения случайного бинарного оператора.
+def rnd_op(a, b):
+    return np.random.choice([a + b, a - b, a * b])
 
 
-# Генерация уравнений с разделяющимися переменными, a2 == 0, f(t) != 0
-def make_separate(a2, b2, y):
-    t = smp.Symbol('t')
-    a2 = smp.simplify(t - t)
-    ft = y
-    y = smp.integrate(ft * b2, t)
-    return eq.Equation(a2, b2, ft, y)
+# Возвращает выражение возведенное в случайную степень от 2 до 5
+def power(expr):
+    return expr ** np.random.randint(2, 5)
 
 
-# Генерация однородных уравнений с разделяющимися переменными, a2 == 0, f(t) == 0
-def make_separate_homogeneous(a2, b2, y):
-    t = smp.Symbol('t')
-    c = smp.Symbol('c')
-    a2 = smp.simplify(t - t)
-    y = smp.numer(np.random.randint(10) + 1)
-    ft = smp.simplify(t - t)
-    return eq.Equation(a2, b2, ft, y)
+# Возвращает случайную алгебраическую функцию.
+def rnd_func():
+    return np.random.choice([smp.sin, smp.cos, smp.exp, power])
 
 
-# Пока не получается нормально генерировать функцию так чтобы потом интегрировалось,
-# но мы исправим и будут более интересные функции. (Разработка в ветке main)
-def gen(depth, homogenous, separable):
-    y = rnd_trig_func()(smp.Symbol('t'))
+# Генерирует выражение зависящее от t.
+# depth - максимальная глубина рекурсии(размер выражения на выходе.
+def rnd_expr(depth, sym):
+    if depth <= 0:
+        return sym
+
+    if true_with_chance(0.5):
+        return rnd_op((rnd_func())(sym * np.random.uniform(1, 10)), rnd_expr(depth - 1, sym))
+    return rnd_func()(sym * np.random.uniform(1, 10)) * np.random.uniform(1, 10)
+
+
+def gen(a_range, b_range, depth, homogenous=False, separable=False):
+    a = np.random.uniform(*a_range)
+    b = np.random.uniform(*b_range)
+    return eq.Equation(a, b, rnd_expr(depth, smp.Symbol('t')))
+
+
+if __name__ == '__main__':
+    e = gen((1, 2), (4, 5), 1)
+    print(e)
+    print(e.a)
+    print(e.b)
 
