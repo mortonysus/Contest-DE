@@ -6,22 +6,19 @@ from configs import *
 from Process import *
 
 
-# Возвращает список точек функции для диапазона,
-# если функция:
+# Вычисляет функцию в точках,
+# Бросает исключения если функция:
 # - принимает комплексные значения,
 # - невычислима хотя бы в одной точке
-# - принимает слишком большие значения - вернет []
+# - принимает слишком большие значения
 def discretize(y, t_vec, max_value):
     ret = []
-    try:
-        for t in t_vec:
-            value = float(y.subs('t', t))
-            if value > max_value:
-                return []
-            ret.append(tuple([t, value]))
-        return ret
-    except:
-        return []
+    for t in t_vec:
+        value = float(y.subs('t', t))
+        if value > max_value:
+            raise Exception(f"Too big value for function {y} in t_vec, regenerating equation...")
+        ret.append(tuple([t, value]))
+    return ret
 
 
 def make_folder(path):
@@ -36,58 +33,43 @@ def make_folders(set_n):
     make_folder(os.path.join(general_path, f"set{set_n}", "answers"))
 
 
-def valid_equation(cfg):
-    # Дробные коэффициенты будут.
-    a = randint(*cfg["a_range"])
-    b = randint(*cfg["b_range"])
+def output_test(cfg, set_n, test_n, equation, points):
+    with open(os.path.join("tests", f"set{set_n}", "tests", f"test{test_n}.test"), 'w') as ost:
+        ost.write(f"{equation.f}\n")
+        ost.write(f"{cfg['points']}\n")
+        for t, y in points:
+            ost.write(f"{t} {y}\n")
+
+
+# На самом деле ответ может быть бесполезен потому что правильных ответов может быть несколько
+def output_answer(set_n, test_n, a, b):
+    with open(os.path.join("tests", f"set{set_n}", "answers", f"test{test_n}.answer"), 'w') as ost:
+        ost.write(f"{a} {b}\n")
+
+
+def gen_test(cfg, set_n, test_n):
+    # Генерируем уравнение с параметрами из конфига
+    equation = eg.gen(cfg["a_range"],
+                      cfg["b_range"],
+                      cfg["depth"],
+                      cfg["homogenous"],
+                      cfg["separable"]
+                      )
+    # Генерируем точки для частного решения уравнения
     if cfg["distribution"] == "random":
         t_vec = np.sort([np.random.uniform(cfg["t0"], cfg["tn"]) for point in range(cfg["points"])])
     elif cfg["distribution"] == "uniform":
         t_vec = np.linspace(cfg["t0"], cfg["tn"], cfg["points"])
     else:
         raise Exception(f"unknown distribution mode: {cfg['distribution']}")
-    while True:
-        equation = eg.gen(a, b, cfg["homogenous"], cfg["separable"])
-        points = discretize(equation.y, t_vec, cfg["max_value"])
-        if points != []:
-            break
-    return equation, points
 
+    points = discretize(equation.y_part, t_vec, cfg["max_value"])
 
-def output_test(cfg, test_n, equation, points):
-    with open(os.path.join(cfg["tests_path"], f"test{test_n}.test"), 'w') as ost:
-        ost.write(str(equation.ft) + '\n')
-        ost.write(str(cfg["points"]) + '\n')
-        for t, y in points:
-            ost.write(f"{t} {y}\n")
-
-
-def output_answer(cfg, test_n, equation):
-    with open(os.path.join(cfg["answers_path"], f"test{test_n}.answer"), 'w') as ost:
-        ost.write(f"{equation.a} {equation.b}\n")
-        ost.write(f"{equation}\n")
-        ost.write(f"y = {equation.y}\n")
-        ost.write(f"ft = {equation.ft}\n")
-
-
-def gen_test(cfg, set_n, test_n):
-    equation = eg.gen(cfg["depth"])
-    picard = slv.picard(cfg["iters"], equation.right_part(), cfg["t0"],
-                        cfg["y0"])
-
-    answer = float(picard.subs('t', cfg["tk"]).evalf())  # conversion exception
-    if abs(answer) > cfg["max"]:
-        raise Exception(f"Too big answer value in equation {equation}, regenerating equation...")
-
-    output_test(cfg, set_n, test_n, equation)
-    output_answer(set_n, test_n, answer)
+    output_test(cfg, set_n, test_n, equation, points)
+    output_answer(set_n, test_n, equation.a, equation.b)
 
     print(f"{test_n})")
     print(f"\tEquation: {equation}")
-    print(f"\ty({cfg['t0']}) = {cfg['t0']}")
-    print(f"\tIterations: {cfg['iters']}")
-    print(f"\ty_{cfg['iters']} = {picard}")
-    print(f"\ty_{cfg['iters']}({cfg['tk']}) = {answer}")
 
 
 def gen_test_wrapper(test_n, set_n):

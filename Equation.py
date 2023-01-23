@@ -1,3 +1,4 @@
+import numpy as np
 import sympy as smp
 from sympy.integrals.risch import NonElementaryIntegral
 
@@ -26,22 +27,30 @@ class Equation:
         return self.a * smp.Symbol('y') + self.b * self.f
 
     def check_invariant(self):
-        dydt = smp.diff(self.y, smp.Symbol('t'))
-        substituted = self.right_part().subs('y', self.y)
-        if smp.simplify(dydt - substituted) != smp.Rational(0):
-            raise Exception("Equation invariant failed")
+        dydt = smp.diff(self.y_gen, smp.Symbol('t'))
+        substituted = self.right_part().subs('y', self.y_gen)
+        check_sum = smp.simplify(dydt - substituted)
+        if check_sum != smp.Rational(0):
+            print(dydt)
+            print(substituted)
+            print(check_sum)
+            raise Exception(f"Equation invariant failed {check_sum}")
 
     def __init__(self, a, b, f):
         self.a, self.b, self.f = a, b, f
 
         # Решение при истинном a
-        self.y = self.solve(a)  # y = f(t,c)
+        self.y_gen = self.solve(a)  # y = f(t,c)
         # Проверка при других a (чтобы работал градиентный спуск)
         self.solve(-a)
         self.solve(a / 2)
         self.solve(-a / 2)
 
         self.check_invariant()
+
+    def definite(self, c):
+        # Определяем частное решение
+        self.y_part = self.y_gen.subs('c', c)
 
     def __str__(self):
         return f"y' = {self.right_part()}"
@@ -50,8 +59,11 @@ class Equation:
 if __name__ == '__main__':
     try:
         t = smp.Symbol('t')
-        e = Equation(2, -2, smp.asin(t))
+        e = Equation(2, -2, smp.sin(t))
+        e.definite(1)
         print(e)
-        print(f"y = {smp.simplify(e.y)}")
+        print(f"y_gen = {smp.simplify(e.y_gen)}")
+        print(f"y_part = {smp.simplify(e.y_part)}")
+
     except Exception as ex:
         print(ex)

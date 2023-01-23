@@ -30,14 +30,19 @@ def rnd_expr(depth, sym):
         return sym
 
     if true_with_chance(0.5):
-        return rnd_op((rnd_func())(sym * np.random.uniform(1, 10)), rnd_expr(depth - 1, sym))
-    return rnd_func()(sym * np.random.uniform(1, 10)) * np.random.uniform(1, 10)
+        return rnd_op((rnd_func())(sym * round(np.random.uniform(1, 10), 2)), rnd_expr(depth - 1, sym))
+    return rnd_func()(sym * round(np.random.uniform(1, 10), 2)) * round(np.random.uniform(1, 10, 2))
 
 
 def gen(a_range, b_range, depth, homogenous=False, separable=False):
     a = np.random.uniform(*a_range)
     b = np.random.uniform(*b_range)
-    return eq.Equation(a, b, rnd_expr(depth, smp.Symbol('t')))
+    c = np.random.uniform(1, 1)  # Константа для частного решения
+
+    e = eq.Equation(a, b, rnd_expr(depth, smp.Symbol('t')))
+    e.definite(c)
+
+    return e
 
 
 if __name__ == '__main__':
@@ -45,4 +50,3 @@ if __name__ == '__main__':
     print(e)
     print(e.a)
     print(e.b)
-
